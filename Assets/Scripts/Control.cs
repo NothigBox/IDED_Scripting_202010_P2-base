@@ -8,7 +8,7 @@ public class Control : MonoBehaviour
     private ICommand addScore;
     private ICommand playerDied;
 
-    public void Awake()
+    private void Awake()
     {
         playerHit = new PlayerHit();
         playerDied = new PlayerDied();

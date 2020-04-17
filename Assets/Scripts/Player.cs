@@ -17,7 +17,7 @@ public class Player : MonoBehaviour
         } 
     }
 
-    public void Awake()
+    private void Awake()
     {
         if(Instance != null) 
         {

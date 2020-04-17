@@ -4,21 +4,18 @@ using UnityEngine;
 
 public class BulletPool : MonoBehaviour
 {
-    public static BulletPool Instance { get; private set; }
     [SerializeField]private GameObject bullet;
     [SerializeField] private int ammo = 50;
     [SerializeField] private float timeToReturn = 5;
 
     private Queue<GameObject> charger = new Queue<GameObject>();
     
-
     private void Awake()
     {
-        Instance = this;
-        FillPool();
+        FillCharger();
     }
 
-    private void FillPool()
+    private void FillCharger()
     {
         for (int i = 0; i < ammo; i++)
         {
@@ -48,7 +45,7 @@ public class BulletPool : MonoBehaviour
         StartCoroutine(Return(chamber));
         return chamber;
     }    
-    IEnumerator Return(GameObject _bullet)
+    private IEnumerator Return(GameObject _bullet)
     {
         yield return new WaitForSeconds(timeToReturn);
         if(_bullet != null) _bullet.SetActive(false);

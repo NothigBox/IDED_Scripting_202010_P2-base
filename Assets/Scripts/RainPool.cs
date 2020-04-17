@@ -23,7 +23,7 @@ public class RainPool : MonoBehaviour
         Spawn();
     }
 
-    void Spawn()
+    private void Spawn()
     {
 
         pool = new Queue<GameObject>[dropsPref.Length];
@@ -66,7 +66,7 @@ public class RainPool : MonoBehaviour
         StartCoroutine(Return(result, randomPool));
         return result; 
     }
-    IEnumerator Return(GameObject _drop, int dropIndex)
+    private IEnumerator Return(GameObject _drop, int dropIndex)
     {
         yield return new WaitForSeconds(timeToReturn);
         if(_drop != null) _drop.SetActive(false);

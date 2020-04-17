@@ -4,6 +4,30 @@ using UnityEngine.UI;
 
 public class UIController : MonoBehaviour
 {
+    #region Singleton
+
+    public static UIController instance;
+    public static UIController Instance
+    {
+        get
+        {
+            if(instance == null) instance = new UIController();
+            return instance;
+        } 
+    }
+
+    private void Awake()
+    {
+        if(Instance != null) 
+        {
+            Destroy(Instance.gameObject);
+        }
+
+        instance = this;
+    }
+
+    #endregion
+
     private Player playerRef;
 
     [SerializeField]
@@ -15,9 +39,6 @@ public class UIController : MonoBehaviour
     [SerializeField]
     private Button restartBtn;
 
-    [SerializeField]
-    private float tickRate = 0.2F;
-
     public void Restart()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
@@ -28,12 +49,8 @@ public class UIController : MonoBehaviour
     {
         ToggleRestartButton(false);
 
-        playerRef = FindObjectOfType<Player>();
-
-        if (playerRef != null && lifeImages.Length == Player.PLAYER_LIVES)
-        {
-            InvokeRepeating("UpdateUI", 0F, tickRate);
-        }
+        UpdateScore("0");
+        UpdateLifeImages(Player.PLAYER_LIVES);
     }
 
     private void ToggleRestartButton(bool val)
@@ -44,31 +61,33 @@ public class UIController : MonoBehaviour
         }
     }
 
-    private void UpdateUI()
+    public void UpdateLifeImages(int lives)
     {
         for (int i = 0; i < lifeImages.Length; i++)
         {
             if (lifeImages[i] != null && lifeImages[i].enabled)
             {
-                lifeImages[i].gameObject.SetActive(playerRef.Lives >= i + 1);
+                lifeImages[i].gameObject.SetActive(lives >= i + 1);
             }
         }
+    }
 
+    public void UpdateScore(string score)
+    {
         if (scoreLabel != null)
         {
-            scoreLabel.text = playerRef.Score.ToString();
+            scoreLabel.text = score;
         }
+    }
 
-        if (playerRef.Lives <= 0)
+    public void ActivateDeathScreen()
+    {
+        CancelInvoke();
+        if (scoreLabel != null)
         {
-            CancelInvoke();
-
-            if (scoreLabel != null)
-            {
-                scoreLabel.text = "Game Over";
-            }
-
-            ToggleRestartButton(true);
+            scoreLabel.text = "Game Over";
         }
+
+        ToggleRestartButton(true);
     }
 }
