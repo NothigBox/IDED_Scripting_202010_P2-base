@@ -2,8 +2,33 @@
 using UnityEngine;
 
 [RequireComponent(typeof(Collider))]
+[RequireComponent(typeof(BulletPool))]
 public class Player : MonoBehaviour
 {
+    #region Singleton
+
+    public static Player instance;
+    public static Player Instance
+    {
+        get
+        {
+            if(instance == null) instance = new Player();
+            return instance;
+        } 
+    }
+
+    public void Awake()
+    {
+        if(Instance != null) 
+        {
+            Destroy(Instance.gameObject);
+        }
+
+        instance = this;
+    }
+
+    #endregion
+
     public const int PLAYER_LIVES = 3;
 
     private const float PLAYER_RADIUS = 0.4F;
@@ -18,13 +43,12 @@ public class Player : MonoBehaviour
 
     [Header("Bullet")]
     [SerializeField]
-    private Rigidbody bullet;
-
-    [SerializeField]
     private Transform bulletSpawnPoint;
 
     [SerializeField]
     private float bulletSpeed = 3F;
+
+    private BulletPool charger; 
 
     #endregion Bullet
 
@@ -61,11 +85,13 @@ public class Player : MonoBehaviour
     private bool ReachedRightBound { get => referencePointComponent >= rightCameraBound; }
     private bool ReachedLeftBound { get => referencePointComponent <= leftCameraBound; }
 
-    private bool CanShoot { get => bulletSpawnPoint != null && bullet != null; }
+    private bool CanShoot { get => bulletSpawnPoint != null; }
 
     #endregion MovementProperties
 
-    public Action OnPlayerDied;
+    public static Action OnPlayerDied;
+    public static Action OnPlayerHit;
+    public static Action<int> OnPlayerScoreChanged;
 
     // Start is called before the first frame update
     private void Start()
@@ -77,17 +103,14 @@ public class Player : MonoBehaviour
             1F, 0F, 0F)).x - PLAYER_RADIUS;
 
         Lives = PLAYER_LIVES;
+
+        charger = GetComponent<BulletPool>();
     }
 
     // Update is called once per frame
     private void Update()
     {
-        if (Lives <= 0)
-        {
-            this.enabled = false;
-            gameObject.SetActive(false);
-        }
-        else
+        if(Lives > 0)
         {
             hVal = Input.GetAxis("Horizontal");
 
@@ -100,10 +123,31 @@ public class Player : MonoBehaviour
             if ((Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
                 && CanShoot)
             {
-                Instantiate<Rigidbody>
-                   (bullet, bulletSpawnPoint.position, bulletSpawnPoint.rotation)
-                   .AddForce(transform.up * bulletSpeed, ForceMode.Impulse);
+                GameObject b = charger.Next();
+                b.transform.position = bulletSpawnPoint.position;
+                b.transform.rotation = bulletSpawnPoint.rotation;
+                b.GetComponent<Rigidbody>().AddForce(transform.up * bulletSpeed, ForceMode.Impulse);
             }
         }
+    }
+    public void TakeDamage()
+    {
+        //  Decrease health.
+        Lives -= 1;
+                
+        //  If there is no health, the player dies.
+        
+        if (Lives <= 0)
+        {
+            if(OnPlayerDied != null) Player.OnPlayerDied();
+            this.enabled = false;
+            gameObject.SetActive(false);
+        }
+        
+    }
+    public void AddScore(int scoreAdd)
+    {
+        //  Increase score count.
+        Score += scoreAdd;
     }
 }

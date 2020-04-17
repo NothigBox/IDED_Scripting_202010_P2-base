@@ -3,8 +3,6 @@
 [RequireComponent(typeof(Collider))]
 public class Target : MonoBehaviour
 {
-    private const float TIME_TO_DESTROY = 10F;
-
     [SerializeField]
     private int maxHP = 1;
 
@@ -16,7 +14,6 @@ public class Target : MonoBehaviour
     private void Start()
     {
         currentHP = maxHP;
-        Destroy(gameObject, TIME_TO_DESTROY);
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -25,38 +22,22 @@ public class Target : MonoBehaviour
 
         if (collidedObjectLayer.Equals(Utils.BulletLayer))
         {
-            Destroy(collision.gameObject);
+            collision.rigidbody.velocity = Vector3.zero;
+            collision.transform.position = Vector3.up * -300;
 
             currentHP -= 1;
 
             if (currentHP <= 0)
-            {
-                Player player = FindObjectOfType<Player>();
-
-                if (player != null)
-                {
-                    player.Score += scoreAdd;
-                }
-
-                Destroy(gameObject);
+            {   
+                transform.position = Vector3.up * -150;
+                if(Player.OnPlayerScoreChanged != null) Player.OnPlayerScoreChanged(scoreAdd);
             }
         }
         else if (collidedObjectLayer.Equals(Utils.PlayerLayer) ||
             collidedObjectLayer.Equals(Utils.KillVolumeLayer))
         {
-            Player player = FindObjectOfType<Player>();
-
-            if (player != null)
-            {
-                player.Lives -= 1;
-
-                if (player.Lives <= 0 && player.OnPlayerDied != null)
-                {
-                    player.OnPlayerDied();
-                }
-            }
-
-            Destroy(gameObject);
+            if(Player.OnPlayerHit != null) Player.OnPlayerHit();
+            transform.position = Vector3.up * -150;
         }
     }
 }
